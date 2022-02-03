@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9de3704f-28a8-46de-b801-e092b01911d5" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="7e34698f-8362-4a54-8aea-bf5175e6b373" >
+		<jms:active-mq-connection username="admin" password="admin" >
+			<jms:factory-configuration brokerUrl="tcp://49.205.240.158:61616" />
+		</jms:active-mq-connection>
+		<jms:producer-config timeToLive="1" timeToLiveUnit="HOURS" />
+	</jms:config>
+	<flow name="apache-mq-projectFlow" doc:id="a16604fb-8bc0-4dcc-95b7-023c18acd64e" >
+		<http:listener doc:name="Listener  GET /apache" doc:id="a8cbd939-2e13-47de-b49c-a97967b2e4b5" config-ref="HTTP_Listener_config" path="apache"/>
+		<set-payload value="** Test Message for Mule -1 **" doc:name="Set Payload" doc:id="ffb42bd5-d29d-4c49-8daa-012440006f5f" />
+		<jms:publish doc:name="Publish" doc:id="b846c917-cb52-466d-8521-0456817e5c39" config-ref="JMS_Config" destination="myQueue"/>
+	</flow>
+	<flow name="apache-mq-projectFlow1" doc:id="7f4f9c2c-58c9-4c70-a72c-7895c083c225" >
+		<http:listener doc:name="Listener  GET /getmessage" doc:id="00bbdd02-ff65-433d-a29c-712f38dcc686" config-ref="HTTP_Listener_config" path="getmessage"/>
+		<jms:consume doc:name="Consume" doc:id="1e5ac947-5eaf-41e6-8095-9c2b2c049357" config-ref="JMS_Config" destination="myQueue">
+			<jms:consumer-type >
+				<jms:queue-consumer />
+			</jms:consumer-type>
+		</jms:consume>
+		<logger level="INFO" doc:name="Logger" doc:id="5c789aea-b585-456d-92f6-20098e4da552" message="#[payload]"/>
+	</flow>
+</mule>
